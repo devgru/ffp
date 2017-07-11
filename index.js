@@ -14,8 +14,8 @@
 // Алгоритм запускается циклично, пока коридор не достигнет последней точки.
 export default function() {
   let getX = (value, index) => index;
-  let getY = Object;
-  let getResult = Object;
+  let getY = value => value;
+  let getResult = value => value;
   
   let maxΔy = 1;
   
@@ -70,10 +70,13 @@ export default function() {
         const ωValue = array[ω];
         const αValue = array[α];
         // Расчитаем интересующие параметры:
-        // - разницу индексов;
+        // - расстояние по оси абсцисс;
         const Δx = getX(ωValue, ω) - getX(αValue, α);
-        // - разницу значений;
+        // - расстояние по оси ординат;
         const Δy = getY(ωValue, ω) - getY(αValue, α);
+        
+        if (isNaN(Δx) || isNaN(Δy)) throw new Error('FFP error, value is NaN');
+        
         // - тангенс линии между точками;
         const tg = Δy / Δx;
         // - изменение тангенса для дельта-точек;
@@ -84,13 +87,11 @@ export default function() {
           tg - tgΔy
         ];
         
-        if (isNaN(Δx) || isNaN(Δy)) throw new Error('ffp error');
-        
         // Если нижняя дверь «смотрит» ниже двери коридора — подвинем дверь коридора.
         if (αωDoors[LOWER] < coridorDoors[LOWER] + ε) {
           coridorDoors[LOWER] = αωDoors[LOWER];
         }
-        // Аналогично для верхних точек.
+        // Аналогично для верхней двери.
         if (coridorDoors[UPPER] < αωDoors[UPPER] + ε) {
           coridorDoors[UPPER] = αωDoors[UPPER];
         }

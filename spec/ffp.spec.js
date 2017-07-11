@@ -4,7 +4,7 @@ describe('ffp', () => {
   it('should filter out unnecessary points, Δ=1', function () {
     const ffp = FFP()
       .result(({index}) => index);
-    let array = [3, 4, 5, 5, 1];
+    const array = [3, 4, 5, 5, 1];
     expect(ffp(array)).toEqual([0, 3, 4]);
   });
   
@@ -12,7 +12,25 @@ describe('ffp', () => {
     const ffp = FFP()
       .maxDelta(0.5)
       .result(({index}) => index);
-    let array = [3, 4, 5, 5, 1, 0];
+    const array = [3, 4, 5, 5, 1, 0];
     expect(ffp(array)).toEqual([0, 2, 3, 4, 5]);
   });
+  
+  it('should work for hashes, Δ=0.5', function () {
+    const ffp = FFP()
+      .maxDelta(0.5)
+      .x(({x}) => x)
+      .y(({y}) => y)
+      .result(({index}) => index);
+    const array = [
+      {x: 0, y: 3},
+      {x: 1, y: 4},
+      {x: 2, y: 5},
+      {x: 3, y: 5},
+      {x: 4, y: 1},
+      {x: 5, y: 0}
+    ];
+    expect(ffp(array)).toEqual([0, 2, 3, 4, 5]);
+  });
+  
 });
