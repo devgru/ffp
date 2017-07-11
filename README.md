@@ -4,7 +4,7 @@
 
 Algorithm is used to filter timeseries to reduce count of points by defining maximum error on ordinate axis.
 
-<img src="https://raw.githubusercontent.com/devgru/ffp/master/demo.png" alt="FFP Demo" width="120">
+<img src="https://raw.githubusercontent.com/devgru/ffp/master/demo.png" alt="FFP Demo" width="400">
 
 FFP algorithm is described in [this](http://masc.cs.gmu.edu/wiki/uploads/GuilinLiu/ffp.pdf) paper, authored by Guilin Xinyu and Zhe Cheng.
 
