@@ -1,16 +1,15 @@
 {
   "name": "ffp",
-  "version": "0.0.1",
-  "description": "Farthest feasible point implementation",
+  "version": "1.0.0",
+  "description": "Farthest feasible point algorithm implementation",
   "scripts": {
-    "build": "webpack -p",
-    "test": "jest --watchAll",
-    "prepublish": "npm run build"
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "files": [
-    "dist.js"
+    "index.js"
   ],
-  "main": "dist.js",
+  "main": "index.js",
+  "type": "module",
   "repository": "devgru/ffp",
   "author": "Dmitriy Semyushkin <git@devg.ru> (https://devg.ru)",
   "license": "MIT",
@@ -21,27 +20,13 @@
     "array filtering"
   ],
   "devDependencies": {
-    "babel-jest": "18",
-    "babel-loader": "6",
-    "babel-preset-es2015": "6",
-    "jest": "18",
-    "webpack": "2"
+    "jest": "28",
+    "lint-staged": "13",
+    "prettier": "2",
+    "simple-pre-commit": "1"
   },
-  "jest": {
-    "collectCoverageFrom": [
-      "lib/**/*.js"
-    ],
-    "testPathIgnorePatterns": [
-      "<rootDir>[/\\\\](node_modules)[/\\\\]"
-    ],
-    "testEnvironment": "node",
-    "transform": {
-      "^.+\\.js$": "babel-jest"
-    }
-  },
-  "babel": {
-    "presets": [
-      "es2015"
-    ]
+  "simple-pre-commit": "npx lint-staged",
+  "lint-staged": {
+    "*.{js,md}": "prettier --write"
   }
 }

@@ -1,146 +1,148 @@
-// Алгоритм FFP — Farthest Feasible Point, «самая дальняя подходящая точка».
-// Фильтрует точки массива, выделяя тренды.
-//
-// Алгоритм работает с двумя основными (альфа и омега) и дополнительными (дельты) точками, формирующими коридор.
-// Альфа и омега изначально указывают на стартовую точку.
-// Дельты альфы или омеги — пары точки, отложенные от основной точки вверх и вниз на Δy.
-// Линия между дельтами альфы формирует левую стену коридора.
-// От дельт альфы до омеги откладываются линии-двери, нижняя и верхняя.
-// Омегой по-очереди назначаются точки за альфой. Алгоритм движется только вперёд.
-// Двери открываются так, чтобы все точки между альфой и омегой попадали в коридор.
-//
-// Коридор считается закрытым, когда двери пересекаются, тангенс нижней двери больше верхней.
-// Последняя омега, при которой коридор был закрыт, считается подходящей точкой и назначается новой альфой.
-// Алгоритм запускается циклично, пока коридор не достигнет последней точки.
-export default function() {
+/*
+ Farthest Feasible Point algorithm implementation.
+ Filters data, highlighting trends and omitting insignificant data points.
+
+ The algorithm works with two primary (alpha and omega) and four secondary (deltas) points to form a corridor.
+ Alpha and omega initially point to the starting point.
+ Alpha and omega's deltas are pairs of points, deferred from the main point upwards and downwards by deltaY.
+ The line between the alpha deltas forms the left wall of the corridor.
+ Doors lines are drawn from the lower and upper delta.
+ The algorithm iterates the points, marking the current one as omega and checking that the corridor doors are still closing.
+ At each step, the doors are adjusted so that all points between alpha and omega fall into the corridor.
+
+ The last omega at which the corridor was closed is considered a farthest feasible point and is assigned a new alpha.
+ The algorithm runs until the corridor reaches the last point.
+*/
+export default function ffp() {
   let getX = (value, index) => index;
-  let getY = value => value;
-  let getResult = value => value;
-  
-  let maxΔy = 1;
-  
+  let getY = (value) => value;
+  let getResult = ({ value }) => value;
+
+  let maxDeltaY = 1;
+
   // Компенсируем погрешность вычислений при сравнениях.
-  let ε = Math.pow(2, -32);
-  
+  let epsilon = Math.pow(2, -32);
+
   // Функция принимает на вход массив точек.
   // Возвращает массив объектов.
-  function ffp(array) {
-    
+  function ffp(points) {
     // Текущая самая дальняя точка.
     let farthestFeasible = 0;
-    
+
     // Тангенсы дверей коридора, нижней и верхней.
-    let coridorDoors;
-    
+    let corridorDoors;
+
     // Альфа, индекс левой точки.
-    let α;
-    
+    let alpha;
+
     // Константы для обращения к границам тренда.
     const LOWER = 0;
     const UPPER = 1;
-    
+
     // Добавление текущей точки в массив результатов.
     function pushPoint() {
       // «Скрещиваем» вектора границ тренда, чтобы их значения заменились на следующей точке.
-      coridorDoors = [Infinity, -Infinity];
+      corridorDoors = [Infinity, -Infinity];
       // Текущую подходящую точку назначаем альфой.
-      α = farthestFeasible;
+      alpha = farthestFeasible;
       // Добавляем текущую подходящую точку в массив.
       result.push({
         index: farthestFeasible,
-        item: array[farthestFeasible]
+        value: points[farthestFeasible],
       });
     }
-    
+
     // Массив результатов.
     const result = [];
-    
+
     // Длина исходного массива.
-    const length = array.length;
-    
+    const length = points.length;
+
     // Начинаем алгоритм с добавления первой точки.
     pushPoint();
-    
+
     // Алгоритм завершается, когда последней подходящей названа последняя точка массива.
     while (farthestFeasible < length - 1) {
       // Омега — текущая точка.
-      let ω = α;
+      let omega = alpha;
       // Пока не упёрлись в последнюю точку...
-      while (ω < length) {
-        const ωValue = array[ω];
-        const αValue = array[α];
+      while (omega < length) {
         // Расчитаем интересующие параметры:
         // - расстояние по оси абсцисс;
-        const Δx = getX(ωValue, ω) - getX(αValue, α);
+        const deltaX = getX(points[omega], omega) - getX(points[alpha], alpha);
         // - расстояние по оси ординат;
-        const Δy = getY(ωValue, ω) - getY(αValue, α);
-        
-        if (isNaN(Δx) || isNaN(Δy)) throw new Error('FFP error, value is NaN');
-        
+        const deltaY = getY(points[omega], omega) - getY(points[alpha], alpha);
+
+        if (isNaN(deltaX) || isNaN(deltaY)) {
+          throw new Error(
+            `FFP error, value is NaN, check indices ${alpha} and ${omega}`
+          );
+        }
+
         // - тангенс линии между точками;
-        const tg = Δy / Δx;
+        const tg = deltaY / deltaX;
         // - изменение тангенса для дельта-точек;
-        const tgΔy = maxΔy / Δx;
-        // - тангенсы дверей коридора α-ω, нижней и верхней, тангенс нижней больше;
-        const αωDoors = [
-          tg + tgΔy,
-          tg - tgΔy
-        ];
-        
+        const deltaYTg = maxDeltaY / deltaX;
+        // - тангенсы дверей коридора alpha-omega, нижней и верхней, тангенс нижней больше;
+        const doors = [tg + deltaYTg, tg - deltaYTg];
+
         // Если нижняя дверь «смотрит» ниже двери коридора — подвинем дверь коридора.
-        if (αωDoors[LOWER] < coridorDoors[LOWER] + ε) {
-          coridorDoors[LOWER] = αωDoors[LOWER];
+        if (doors[LOWER] < corridorDoors[LOWER] + epsilon) {
+          corridorDoors[LOWER] = doors[LOWER];
         }
         // Аналогично для верхней двери.
-        if (coridorDoors[UPPER] < αωDoors[UPPER] + ε) {
-          coridorDoors[UPPER] = αωDoors[UPPER];
+        if (corridorDoors[UPPER] < doors[UPPER] + epsilon) {
+          corridorDoors[UPPER] = doors[UPPER];
         }
-        if (coridorDoors[UPPER] < tg + ε && tg < coridorDoors[LOWER] + ε) {
+        if (
+          corridorDoors[UPPER] < tg + epsilon &&
+          tg < corridorDoors[LOWER] + epsilon
+        ) {
           // Если омега попадает в коридор при текущем положении дверей — считаем её последней подходящей.
-          farthestFeasible = ω;
-        } else if (coridorDoors[LOWER] < coridorDoors[UPPER] + ε) {
+          farthestFeasible = omega;
+        } else if (corridorDoors[LOWER] < corridorDoors[UPPER] + epsilon) {
           // Если двери коридора не пересекаются — сохраняем последнюю подходящую точку.
           pushPoint();
           // Повторяем алгоритм, откатываясь к этой точке.
-          ω = α;
+          omega = alpha;
         }
         // В конце шага назначаем омегой следующую точку.
-        ω++;
+        omega++;
       }
       // Добавляем в результат последнюю точку массива.
       pushPoint();
     }
-    
+
     // Возвращаем результат.
     return result.map(getResult);
   }
-  
-  ffp.maxDelta = function (newMaxDelta) {
-    if (!arguments.length) return maxΔy;
-    maxΔy = newMaxDelta;
+
+  ffp.maxDeltaY = function (newMaxDelta) {
+    if (!arguments.length) return maxDeltaY;
+    maxDeltaY = newMaxDelta;
     return ffp;
   };
-  
+
   ffp.epsilon = function (newEpsilon) {
-    if (!arguments.length) return ε;
-    ε = newEpsilon;
+    if (!arguments.length) return epsilon;
+    epsilon = newEpsilon;
     return ffp;
   };
-  
-  ffp.y = function (newGetter) {
-    getY = newGetter;
+
+  ffp.y = function (newAccessor) {
+    getY = newAccessor;
     return ffp;
   };
-  
-  ffp.x = function (newGetter) {
-    getX = newGetter;
+
+  ffp.x = function (newAccessor) {
+    getX = newAccessor;
     return ffp;
   };
-  
-  ffp.result = function (newGetter) {
-    getResult = newGetter;
+
+  ffp.result = function (newMapper) {
+    getResult = newMapper;
     return ffp;
   };
-  
+
   return ffp;
 }
